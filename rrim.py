@@ -82,6 +82,15 @@ def makeRRIMImage(slopedata, openness):
             result[y, x, :] = RRIM_map[inc, openness_val]
     return result
 
+# decorator: compute time cost
+def timer(func):
+    def wrapper(*args, **kw):
+        startTime = time.clock()
+        callback =  func(*args, **kw)
+        print('\nTotal running time: %.3f' % ((time.clock() - startTime) / 60.0), 'mins')
+        return callback
+    return wrapper
+
 # rrim function
 @timer
 def rrim(depth, cellSize, L, output_fname):
@@ -105,33 +114,23 @@ def rrim(depth, cellSize, L, output_fname):
 
     print('rrim complete.')
 
-# decorator: compute time cost
-def timer(func):
-    def wrapper(*args, **kw):
-        startTime = time.clock()
-        callback =  func(*args, **kw)
-        print('\nTotal running time: %.3f' % ((time.clock() - startTime) / 60.0), 'mins')
-        return callback
-    return wrapper
-
-
 
 if __name__ == '__main__':
-    '''
-    raster = cv2.imread("./data/ASTGTM2_N29E111_dem.tif", cv2.IMREAD_UNCHANGED)
+    depthFile = './data/ASTGTM2_N29E111_dem.tif'
+    raster = cv2.imread(depthFile, cv2.IMREAD_UNCHANGED)
     cellSize = 30
     L = 600
-    '''
+
     '''
     raster = cv2.imread("./data/result.tif", cv2.IMREAD_UNCHANGED)
     cellSize = 0.05
     L = 0.8
-    '''
+    
     depthFile = './data/depth.csv'
     raster = np.loadtxt(depthFile, delimiter=',')
     cellSize = 0.05
     L = 0.5
-
+    '''
     rrimFile = depthFile[:-4]+'_rrim.png'  # output file name
     rrim(raster.astype(np.float), cellSize, L, rrimFile)  # main function of rrim
 
