@@ -21,11 +21,11 @@ A more detailed image of the northwestern part:</br>
 ## Parameters
 Main function:</br>
 
-    rrim(depth, cellSize, L, output_fname, color_size=(50, 50, 3))
+    rrim(depth, cell_size, L, output_fname, color_size=(50, 50, 3))
 
 - depth</br>
 numpy.array: Depth data</br>
-- cellSize</br>
+- cell_size</br>
 float: The actual distance a cell (pixel, point) cross</br>
 - L</br>
 float: The distance within which points are used to compute openness</br>

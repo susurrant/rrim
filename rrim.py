@@ -1,10 +1,13 @@
 #!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
+"""
+ Implemented by Xin Yao : https://github.com/susurrant/'
+"""
 
 import cv2
 import numpy as np
 import time
-
+from stl import mesh
 
 # compute zenith and nadir angles
 def theta(dh):
@@ -15,7 +18,7 @@ def theta(dh):
     return 0, 0
 
 # compute openness
-def openness(depth, r, c, cellSize, L):
+def openness(depth, r, c, cell_size, L):
     dc = [1,1,0,-1,-1,-1,0,1]
     dr = [0,1,1,1,0,-1,-1,-1]
     o = []
@@ -25,7 +28,7 @@ def openness(depth, r, c, cellSize, L):
         while pCount:
             pr = r+dr[dCount]*pCount
             pc = c+dc[dCount]*pCount
-            dis = np.sqrt((pr-r)**2+(pc-c)**2)*cellSize
+            dis = np.sqrt((pr-r)**2+(pc-c)**2)*cell_size
             if dis > L or pr < 0 or pr >= depth.shape[0] or pc < 0 or pc >= depth.shape[1]:
                 break
             e.append([dis, depth[pr, pc] - depth[r, c]])
@@ -34,12 +37,35 @@ def openness(depth, r, c, cellSize, L):
 
     return np.sum(o, axis=0)/8
 
+def theta_n(dh, dis):
+    if dh.size:
+        x = dh/dis
+        v = np.array([np.max(x), -np.min(x)])
+        return 90 - np.arctan(v) * 180 / np.pi
+    return 0, 0
+
+def openness_n(depth, j, i, cell_size, L):
+    a = np.arange(1, int(L / cell_size))
+    row = a[:, np.newaxis] * np.array([0, 1, 1, 1, 0, -1, -1, -1]) + j
+    column = a[:, np.newaxis] * np.array([1, 1, 0, -1, -1, -1, 0, 1]) + i
+
+    idx = (row < depth.shape[0]) & (row  >= 0) & (column < depth.shape[1]) & (column >= 0)
+    o = []
+    for n, y in enumerate(np.transpose(idx)):
+        rs = row[np.where(y == True), n]
+        cs = column[np.where(y == True), n]
+        dis = (np.sqrt((rs - j) ** 2 + (cs - i) ** 2))*cell_size
+        dh = depth[rs, cs] - depth[j, i]
+        o.append(theta_n(dh, dis))
+
+    return np.sum(o, axis=0) / 8
+
 # compute slope
-def slope(depth, cellSize):
+def slope(depth, cell_size):
     y_kernel = np.array([[-1, -2, -1], [0, 0, 0], [1, 2, 1]])
     x_kernel = np.array([[1, 0, -1], [2, 0, -2], [1, 0, -1]])
-    dy = cv2.filter2D(depth, -1, y_kernel) / (8 * cellSize)
-    dx = cv2.filter2D(depth, -1, x_kernel) / (8 * cellSize)
+    dy = cv2.filter2D(depth, -1, y_kernel) / (8 * cell_size)
+    dx = cv2.filter2D(depth, -1, x_kernel) / (8 * cell_size)
     return np.arctan(np.sqrt(dy ** 2 + dx ** 2)) * 180 / np.pi
 
 # color scheme
@@ -87,19 +113,20 @@ def timer(func):
 
 # rrim function
 @timer
-def rrim(depth, cellSize, L, output_fname, color_size=(50, 50, 3)):
+def rrim(depth, cell_size, L, output_fname, color_size=(50, 50, 3)):
     print('start rrim...')
 
     # 1. slop step
-    slopeMat = slope(depth, cellSize)
+    slopeMat = slope(depth, cell_size)
 
     # 2. openness step
+
     opennessMat = np.zeros(depth.shape)
     for j in range(depth.shape[0]):
         if j % 100 == 0:
             print('  %.2f  finished...' % (j/depth.shape[0]*100))
         for i in range(depth.shape[1]):
-            o = openness(depth, j, i, cellSize, L)
+            o = openness(depth, j, i, cell_size, L)
             opennessMat[j,i] = (o[0]-o[1])/2
 
     # 3. img generation step
@@ -107,27 +134,42 @@ def rrim(depth, cellSize, L, output_fname, color_size=(50, 50, 3)):
 
     print('rrim complete.')
 
+# read data from an image or DEM
+# cell_size must be mannully set in the main funtion
+def readDataFromImg(dem_file):
+    depthFile = dem_file
+    return cv2.imread(depthFile, cv2.IMREAD_UNCHANGED)
+
+# read data from a stl file
+# A depth map is needed, which can be obtain with MeshLab
+# the cell_size is automatically computed
+def readDataFromStl(depth_img, stl_name):
+    d = cv2.imread(depth_img, cv2.IMREAD_UNCHANGED)[:, :, 0]
+    y, x = np.where(d != 255)
+    d = 255 - d[np.min(y):np.max(y) + 1, np.min(x):np.max(x) + 1]
+    d[np.where(d == 0)] = sorted(list(set(d.flatten())))[1]
+
+    m = mesh.Mesh.from_file(stl_name)
+    cell_size = (np.max(m.vectors, axis=0)[0, 1] - np.min(m.vectors, axis=0)[0, 1]) / d.shape[0]
+
+    return d, cell_size
+
+
 
 if __name__ == '__main__':
-
-    depthFile = './data/ASTGTM2_N29E111_dem.tif'
-    raster = cv2.imread(depthFile, cv2.IMREAD_UNCHANGED)
-    cellSize = 30
+    '''
+    depth_file = './data/ASTGTM2_N29E111_dem.tif'
+    raster = readDataFromImg('./data/ASTGTM2_N29E111_dem.tif')
+    cell_size = 30
     L = 600
-
     '''
-    
-    raster = cv2.imread("./data/result.tif", cv2.IMREAD_UNCHANGED)
-    cellSize = 0.05
-    L = 0.8
-    
 
-    depthFile = './data/depth.csv'
-    raster = np.loadtxt(depthFile, delimiter=',')
-    cellSize = 0.05
-    L = 0.5
-    '''
-    rrimFile = depthFile[:-4]+'_rrim.png'  # output file name
-    rrim(raster.astype(np.float), cellSize, L, rrimFile)  # main function of rrim
+    depth_file = './data/Bodacious_Snaget-Krunk.png'
+    stl_file = './data/Bodacious_Snaget-Krunk.stl'
+    raster, cell_size = readDataFromStl(depth_file, stl_file)
+    L = 0.6       # usually L is slightly larger than cell_size*10
+
+    rrimFile = depth_file[:-4]+'_rrim_new.png'  # output file name
+    rrim(raster.astype(np.float), cell_size, L, rrimFile, color_size=(90, 50, 3))  # main function of rrim
 
 
