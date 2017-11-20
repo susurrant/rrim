@@ -160,17 +160,18 @@ def readDataFromStl(depth_img, stl_name):
 
 
 if __name__ == '__main__':
+    '''
     depth_file = './data/ASTGTM2_N29E111_dem.tif'
     raster = readDataFromImg('./data/ASTGTM2_N29E111_dem.tif')
     cell_size = 30
     L = 600
-    
     '''
+
     depth_file = './data/Bodacious_Snaget-Krunk.png'
     stl_file = './data/Bodacious_Snaget-Krunk.stl'
     raster, cell_size = readDataFromStl(depth_file, stl_file)
     L = 0.6       # usually L is slightly larger than cell_size*10
-    '''
+
 
     rrimFile = depth_file[:-4]+'_rrim_new.png'  # output file name
     rrim(raster.astype(np.float), cell_size, L, rrimFile, color_size=(90, 50, 3))  # main function of rrim

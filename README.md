@@ -10,7 +10,24 @@
 
 ## Description
 **Generate a rrim image from depth data, such as DEM, raster, point cloud data.**</br>
-Example:</br>
+
+## Parameters
+Main function in rrim.py:</br>
+
+    rrim(depth, cell_size, L, output_fname, color_size=(50, 50, 3))
+
+- depth</br>
+numpy.array: Depth data</br>
+- cell_size</br>
+float: The actual distance that a cell (pixel, point) cross</br>
+- L</br>
+float: The distance within which points are used to compute openness</br>
+- output_fname</br>
+string: The filename of the output rrim image</br>
+- color_size</br>
+numpy.array, shape = (int, int, 3): The range of color corresponding to the ranges of slope and openness</br>
+
+## Example
 DEM data:</br>
 ![dem](/data/ASTGTM2_N29E111_dem_review.jpg)
 RRIM image:</br>
@@ -18,18 +35,3 @@ RRIM image:</br>
 A more detailed image of the northwestern part:</br>
 ![detail](/data/ASTGTM2_N29E111_dem_rrim_detail.png)
 
-## Parameters
-Main function:</br>
-
-    rrim(depth, cell_size, L, output_fname, color_size=(50, 50, 3))
-
-- depth</br>
-numpy.array: Depth data</br>
-- cell_size</br>
-float: The actual distance a cell (pixel, point) cross</br>
-- L</br>
-float: The distance within which points are used to compute openness</br>
-- output_fname</br>
-string: The filename of the output rrim image</br>
-- color_size</br>
-numpy.array, shape = (int, int, 3): The range of color corresponding to the ranges of slope and openness</br>
