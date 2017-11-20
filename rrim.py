@@ -37,6 +37,7 @@ def openness(depth, r, c, cell_size, L):
 
     return np.sum(o, axis=0)/8
 
+# compute openness with numpy, but it failed
 def theta_n(dh, dis):
     if dh.size:
         x = dh/dis
@@ -134,11 +135,13 @@ def rrim(depth, cell_size, L, output_fname, color_size=(50, 50, 3)):
 
     print('rrim complete.')
 
-# read data from an image or DEM
+# read data from an image or a DEM or a file
 # cell_size must be mannully set in the main funtion
 def readDataFromImg(dem_file):
-    depthFile = dem_file
-    return cv2.imread(depthFile, cv2.IMREAD_UNCHANGED)
+    return cv2.imread(dem_file, cv2.IMREAD_UNCHANGED)
+
+def readDataFromFile(file_name, delimiter=',', skiprows=0):
+    return np.loadtxt(file_name, delimiter=delimiter, skiprows=skiprows)
 
 # read data from a stl file
 # A depth map is needed, which can be obtain with MeshLab
@@ -157,17 +160,17 @@ def readDataFromStl(depth_img, stl_name):
 
 
 if __name__ == '__main__':
-    '''
     depth_file = './data/ASTGTM2_N29E111_dem.tif'
     raster = readDataFromImg('./data/ASTGTM2_N29E111_dem.tif')
     cell_size = 30
     L = 600
+    
     '''
-
     depth_file = './data/Bodacious_Snaget-Krunk.png'
     stl_file = './data/Bodacious_Snaget-Krunk.stl'
     raster, cell_size = readDataFromStl(depth_file, stl_file)
     L = 0.6       # usually L is slightly larger than cell_size*10
+    '''
 
     rrimFile = depth_file[:-4]+'_rrim_new.png'  # output file name
     rrim(raster.astype(np.float), cell_size, L, rrimFile, color_size=(90, 50, 3))  # main function of rrim
