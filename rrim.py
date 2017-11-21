@@ -138,10 +138,16 @@ def rrim(depth, cell_size, L, output_fname, color_size=(50, 50, 3)):
 # read data from an image or a DEM or a file
 # cell_size must be mannully set in the main funtion
 def readDataFromImg(dem_file):
-    return cv2.imread(dem_file, cv2.IMREAD_UNCHANGED)
+    d = cv2.imread(dem_file, cv2.IMREAD_UNCHANGED)
+    print('shape     :', d.shape)
+    print('z range: %d - %d' % (np.min(d), np.max(d)))
+    return d
 
 def readDataFromFile(file_name, delimiter=',', skiprows=0):
-    return np.loadtxt(file_name, delimiter=delimiter, skiprows=skiprows)
+    d = np.loadtxt(file_name, delimiter=delimiter, skiprows=skiprows)
+    print('shape     :', d.shape)
+    print('z range: %d - %d' % (np.min(d), np.max(d)))
+    return d
 
 # read data from a stl file
 # A depth map is needed, which can be obtain with MeshLab
@@ -151,9 +157,16 @@ def readDataFromStl(depth_img, stl_name):
     y, x = np.where(d != 255)
     d = 255 - d[np.min(y):np.max(y) + 1, np.min(x):np.max(x) + 1]
     d[np.where(d == 0)] = sorted(list(set(d.flatten())))[1]
+    print('shape     :', d.shape)
+    print('gray range: %d - %d' % (np.min(d), np.max(d)))
 
     m = mesh.Mesh.from_file(stl_name)
+    zmin = np.min(m.vectors, axis=0)[0, 2]
+    zmax = np.max(m.vectors, axis=0)[0, 2]
+    d = zmin + (d - np.min(d)) * (zmax - zmin) / (np.max(d) - np.min(d))
     cell_size = (np.max(m.vectors, axis=0)[0, 1] - np.min(m.vectors, axis=0)[0, 1]) / d.shape[0]
+    print('z range   : %f - %f' % (zmin, zmax))
+    print('cell size :', cell_size)
 
     return d, cell_size
 
