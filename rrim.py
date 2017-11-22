@@ -115,7 +115,7 @@ def timer(func):
 # rrim function
 @timer
 def rrim(depth, cell_size, L, output_fname, color_size=(50, 50, 3)):
-    print('start rrim...')
+    print('\nstart rrim...')
 
     # 1. slop step
     slopeMat = slope(depth, cell_size)
@@ -140,13 +140,13 @@ def rrim(depth, cell_size, L, output_fname, color_size=(50, 50, 3)):
 def readDataFromImg(dem_file):
     d = cv2.imread(dem_file, cv2.IMREAD_UNCHANGED)
     print('shape     :', d.shape)
-    print('z range: %d - %d' % (np.min(d), np.max(d)))
+    print('z range: %d - %d\n' % (np.min(d), np.max(d)))
     return d
 
 def readDataFromFile(file_name, delimiter=',', skiprows=0):
     d = np.loadtxt(file_name, delimiter=delimiter, skiprows=skiprows)
     print('shape     :', d.shape)
-    print('z range: %d - %d' % (np.min(d), np.max(d)))
+    print('z range: %d - %d\n' % (np.min(d), np.max(d)))
     return d
 
 # read data from a stl file
@@ -154,9 +154,10 @@ def readDataFromFile(file_name, delimiter=',', skiprows=0):
 # the cell_size is automatically computed
 def readDataFromStl(depth_img, stl_name):
     d = cv2.imread(depth_img, cv2.IMREAD_UNCHANGED)[:, :, 0]
-    y, x = np.where(d != 255)
-    d = 255 - d[np.min(y):np.max(y) + 1, np.min(x):np.max(x) + 1]
-    d[np.where(d == 0)] = sorted(list(set(d.flatten())))[1]
+    y, x = np.where(d != 0)    # by default the background is black, and the higher, the whiter
+    d = d[np.min(y):np.max(y) + 1, np.min(x):np.max(x) + 1]
+    # use bellow code if there is a grayscale gap between the background and the object
+    #d[np.where(d == 0)] = sorted(list(set(d.flatten())))[1]
     print('shape     :', d.shape)
     print('gray range: %d - %d' % (np.min(d), np.max(d)))
 
@@ -176,17 +177,19 @@ if __name__ == '__main__':
     '''
     depth_file = './data/ASTGTM2_N29E111_dem.tif'
     raster = readDataFromImg('./data/ASTGTM2_N29E111_dem.tif')
+    np.savetxt(depth_file[:-4] + '_depth.csv', raster, delimiter=',')
     cell_size = 30
     L = 600
     '''
 
-    depth_file = './data/Bodacious_Snaget-Krunk.png'
-    stl_file = './data/Bodacious_Snaget-Krunk.stl'
+    depth_file = './data/estrella_nijadoble.tif'
+    stl_file = './data/estrella_nijadoble.stl'
     raster, cell_size = readDataFromStl(depth_file, stl_file)
-    L = 0.6       # usually L is slightly larger than cell_size*10
+    L = 1.0      # usually L is slightly larger than cell_size*10
 
-
-    rrimFile = depth_file[:-4]+'_rrim_new.png'  # output file name
-    rrim(raster.astype(np.float), cell_size, L, rrimFile, color_size=(90, 50, 3))  # main function of rrim
+    print('depth file:', depth_file)
+    print('L         :', L)
+    rrimFile = depth_file[:-4]+'_rrim.png'  # output file name
+    rrim(raster.astype(np.float), cell_size, L, rrimFile, color_size=(90, 50, 3))
 
 
