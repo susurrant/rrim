@@ -1,7 +1,7 @@
 #!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
 """
- Implemented by Xin Yao : https://github.com/susurrant/'
+ Implemented by Xin Yao : https://github.com/susurrant/
 """
 
 import cv2
