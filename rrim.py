@@ -149,6 +149,18 @@ def readDataFromFile(file_name, delimiter=',', skiprows=0):
     print('z range: %d - %d\n' % (np.min(d), np.max(d)))
     return d
 
+# find min and max values among vectors of a stl
+def findM(m, axis):
+    minv = float('inf')
+    maxv = -float('inf')
+    for v in m.vectors:
+        for c in v:
+            if c[axis] < minv:
+                minv = c[axis]
+            if c[axis] > maxv:
+                maxv = c[axis]
+    return minv, maxv
+
 # read data from a stl file
 # A depth map is needed, which can be obtain with MeshLab
 # the cell_size is automatically computed
@@ -162,10 +174,10 @@ def readDataFromStl(depth_img, stl_name):
     print('gray range: %d - %d' % (np.min(d), np.max(d)))
 
     m = mesh.Mesh.from_file(stl_name)
-    zmin = np.min(m.vectors, axis=0)[0, 2]
-    zmax = np.max(m.vectors, axis=0)[0, 2]
+    zmin, zmax = findM(m, 2)
     d = zmin + (d - np.min(d)) * (zmax - zmin) / (np.max(d) - np.min(d))
-    cell_size = (np.max(m.vectors, axis=0)[0, 1] - np.min(m.vectors, axis=0)[0, 1]) / d.shape[0]
+    ymin, ymax = findM(m, 1)
+    cell_size = (ymax-ymin) / d.shape[0]
     print('z range   : %f - %f' % (zmin, zmax))
     print('cell size :', cell_size)
 
