@@ -201,7 +201,7 @@ if __name__ == '__main__':
 
     print('depth file:', depth_file)
     print('L         :', L)
-    rrimFile = depth_file[:-4]+'_rrim.png'  # output file name
+    rrimFile = depth_file[:-4]+'_rrim.bmp'  # output file name
     rrim(raster.astype(np.float), cell_size, L, rrimFile, color_size=(90, 50, 3))
 
 
