@@ -165,7 +165,8 @@ def findM(m, axis):
 # A depth map is needed, which can be obtain with MeshLab
 # the cell_size is automatically computed
 def readDataFromStl(depth_img, stl_name):
-    d = cv2.imread(depth_img, cv2.IMREAD_UNCHANGED)[:, :, 0]
+    d = cv2.imread(depth_img, cv2.IMREAD_UNCHANGED).astype(np.float)
+    d = d[:, :, 0]
     y, x = np.where(d != 0)    # by default the background is black, and the higher, the whiter
     d = d[np.min(y):np.max(y) + 1, np.min(x):np.max(x) + 1]
     # use bellow code if there is a grayscale gap between the background and the object
