@@ -19,7 +19,7 @@ Main function in rrim.py:</br>
 - depth</br>
 numpy.array: Depth data</br>
 - cell_size</br>
-float: The actual distance that a cell (pixel, point) cross</br>
+float: The actual distance that a cell (pixel, point) covers</br>
 - L</br>
 float: The distance within which points are used to compute openness</br>
 - output_fname</br>
